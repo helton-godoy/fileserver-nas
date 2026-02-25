@@ -2,15 +2,15 @@
 set -e
 
 detect_pkg_manager() {
-    if command -v pacman > /dev/null 2>&1; then
+    if command -v pacman >/dev/null 2>&1; then
         echo "pacman"
-    elif command -v apt-get > /dev/null 2>&1; then
+    elif command -v apt-get >/dev/null 2>&1; then
         echo "apt"
-    elif command -v dnf > /dev/null 2>&1; then
+    elif command -v dnf >/dev/null 2>&1; then
         echo "dnf"
-    elif command -v yum > /dev/null 2>&1; then
+    elif command -v yum >/dev/null 2>&1; then
         echo "yum"
-    elif command -v zypper > /dev/null 2>&1; then
+    elif command -v zypper >/dev/null 2>&1; then
         echo "zypper"
     else
         echo "unknown"
@@ -22,23 +22,23 @@ install_pkg() {
     pkg_manager=$(detect_pkg_manager)
 
     case "${pkg_manager}" in
-        pacman)
-            pacman -S --noconfirm "$1"
-            ;;
-        apt)
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get install -y "$1"
-            ;;
-        dnf | yum)
-            dnf install -y "$1" || yum install -y "$1"
-            ;;
-        zypper)
-            zypper install -y "$1"
-            ;;
-        *)
-            echo "   ERRO: Gerenciador de pacotes não suportado"
-            exit 1
-            ;;
+    pacman)
+        pacman -S --noconfirm "$1"
+        ;;
+    apt)
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get install -y "$1"
+        ;;
+    dnf | yum)
+        dnf install -y "$1" || yum install -y "$1"
+        ;;
+    zypper)
+        zypper install -y "$1"
+        ;;
+    *)
+        echo "   ERRO: Gerenciador de pacotes não suportado"
+        exit 1
+        ;;
     esac
 }
 
@@ -62,7 +62,7 @@ echo "==========================================================================
 echo "=> Verificando dependências..."
 echo "===================================================================================="
 
-if ! command -v lb > /dev/null 2>&1; then
+if ! command -v lb >/dev/null 2>&1; then
     echo "   Instalando live-build..."
     install_pkg "live-build live-config"
 fi
@@ -75,9 +75,9 @@ cd "${PROJECT_DIR}"
 
 lb config \
     --distribution trixie \
-    --binary-image hybrid \
+    --binary-image iso-hybrid \
     --bootappend-live "boot=live components locale=pt_BR.UTF-8 keyboard-layouts=br" \
-    --debian-installer false \
+    --debian-installer none \
     --archive-areas "main contrib non-free non-free-firmware" \
     --mirror-bootstrap "http://ftp.br.debian.org/debian" \
     --mirror-chroot "http://ftp.br.debian.org/debian" \
@@ -86,7 +86,7 @@ lb config \
     --iso-publisher "Debian ZFS Installer,debian-zfs@example.com" \
     --iso-volume "Debian Trixie ZFS" \
     --chroot-filesystem squashfs \
-    --bootloader syslinux,grub-pc \
+    --bootloader grub-pc \
     --binary-filesystem fat32 \
     --source false \
     2>&1
@@ -95,65 +95,94 @@ echo "==========================================================================
 echo "=> Criando lista de pacotes..."
 echo "===================================================================================="
 
-cat > config/package-lists/zfs.list.chroot << 'EOF'
-# Base system
-live-boot
-live-config
-live-tools
+cat >config/package-lists/zfs.list.chroot <<'EOF'
 systemd
 udev
 dbus
-
-# ZFS
-zfsutils-linux
-zfs-dkms
-zfs-initramfs
-
-# Installation tools
-debootstrap
-gdisk
-parted
-gpg
-dirmngr
-gnupg
-
-# Network
-ifupdown2
-isc-dhcp-client
-openssh-client
-openssh-server
-iputils-ping
-net-tools
-dnsutils
-
-# Utilities
-vim-tiny
 sudo
-curl
-wget
-git
-htop
-rsync
+iputils-ping
+iproute2
 tar
 gzip
 xz-utils
 zstd
+lz4
+lzop
 uuid-runtime
+dnsutils
 locales
+locales-all
 keyboard-configuration
 console-setup
+manpages-pt-br
+manpages-pt-br-dev
+aspell-pt-br
+ibrazilian
+wbrazilian
+info
+info2man
 initramfs-tools
 initramfs-tools-bin
 kmod
 efibootmgr
-grub-efi-amd64
-grub-pc
+parted
+gdisk
+gpg
+gnupg
+dirmngr
+linux-headers-amd64
+linux-image-amd64
+grub-efi-amd64-bin
 grub-pc-bin
-os-prober
-
-# Firmware
 firmware-linux-free
+intel-microcode
+thermald
+msr-tools
 firmware-linux-nonfree
+os-prober
+dkms
+dosfstools
+mtools
+build-essential
+zfs-dkms
+zfs-initramfs
+zfsutils-linux
+zfs-zed
+libpam-zfs
+libzfsbootenv1linux
+libzfslinux-dev
+live-build
+live-config
+live-config-systemd
+live-boot
+live-tools
+debootstrap
+squashfs-tools
+xorriso
+isolinux
+curl
+wget
+git
+ifupdown2
+openssh-server
+openssh-client
+cloud-init
+cloud-initramfs-growroot
+cloud-initramfs-dyn-netconf
+dhcpcd-base
+mmdebstrap
+rsync
+tree
+dpkg-dev
+screen
+ncdu
+htop
+iotop
+iftop
+nfs-common
+cifs-utils
+qemu-guest-agent
+
 EOF
 
 echo "===================================================================================="
@@ -162,7 +191,7 @@ echo "==========================================================================
 
 mkdir -p config/includes.chroot/etc/apt
 
-cat > config/includes.chroot/etc/apt/sources.list << 'EOF'
+cat >config/includes.chroot/etc/apt/sources.list <<'EOF'
 deb http://ftp.br.debian.org/debian trixie main contrib non-free non-free-firmware
 deb http://ftp.br.debian.org/debian trixie-updates main contrib non-free non-free-firmware
 deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
@@ -174,7 +203,7 @@ echo "==========================================================================
 
 mkdir -p config/includes.chroot/etc/network
 
-cat > config/includes.chroot/etc/network/interfaces << 'EOF'
+cat >config/includes.chroot/etc/network/interfaces <<'EOF'
 auto lo
 iface lo inet loopback
 
@@ -191,7 +220,7 @@ echo "==========================================================================
 
 mkdir -p config/includes.chroot/etc/ssh
 
-cat > config/includes.chroot/etc/ssh/sshd_config << 'EOF'
+cat >config/includes.chroot/etc/ssh/sshd_config <<'EOF'
 Port 22
 PermitRootLogin yes
 PasswordAuthentication yes
@@ -202,7 +231,7 @@ AcceptEnv LANG LC_*
 Subsystem sftp /usr/lib/openssh/sftp-server
 EOF
 
-cat > config/includes.chroot/etc/ssh/ssh_config << 'EOF'
+cat >config/includes.chroot/etc/ssh/ssh_config <<'EOF'
 Host *
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
@@ -214,7 +243,7 @@ echo "==========================================================================
 
 mkdir -p config/includes.chroot/usr/local/bin
 
-cat > config/includes.chroot/usr/local/bin/install-zfs << 'SCRIPT_EOF'
+cat >config/includes.chroot/usr/local/bin/install-zfs <<'SCRIPT_EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -721,7 +750,7 @@ echo "==========================================================================
 echo "=> Criando script de menu de instalação..."
 echo "===================================================================================="
 
-cat > config/includes.chroot/usr/local/bin/install << 'MENU_EOF'
+cat >config/includes.chroot/usr/local/bin/install <<'MENU_EOF'
 #!/bin/bash
 echo "========================================"
 echo "  Debian Trixie ZFS Installer"
@@ -759,13 +788,13 @@ echo "==========================================================================
 
 mkdir -p config/includes.chroot/etc/default
 
-cat > config/includes.chroot/etc/default/locale << 'EOF'
+cat >config/includes.chroot/etc/default/locale <<'EOF'
 LANG=pt_BR.UTF-8
 LANGUAGE=pt_BR.UTF-8
 LC_ALL=pt_BR.UTF-8
 EOF
 
-cat > config/includes.chroot/etc/default/console-setup << 'EOF'
+cat >config/includes.chroot/etc/default/console-setup <<'EOF'
 CHARMAP=UTF-8
 CODETABLE=br-abnt2
 FONTFACE=Terminus
@@ -773,7 +802,7 @@ FONTSIZE=16x32
 ACTIVE=1
 EOF
 
-cat > config/includes.chroot/etc/vconsole.conf << 'EOF'
+cat >config/includes.chroot/etc/vconsole.conf <<'EOF'
 KEYMAP=br-abnt2
 FONT=
 EOF
@@ -784,7 +813,7 @@ echo "==========================================================================
 
 lb build 2>&1 | tee "${PROJECT_DIR}/build.log"
 
-ISO_FILE="$(ls -t *.iso 2> /dev/null | head -1)"
+ISO_FILE="$(ls -t *.iso 2>/dev/null | head -1)"
 
 if [[ -f ${ISO_FILE} ]]; then
     echo "===================================================================================="
