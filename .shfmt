@@ -1,0 +1,20 @@
+# shfmt configuration
+# https://github.com/mvdan/sh
+
+# Indentação com 4 espaços
+indent=4
+
+# Usar espaços para indentação (não tabs)
+write
+
+# Simplificar código: remover espaços em branco extras, etc.
+simplify
+
+# Diferença mínima para alinhar
+binary-next-line
+
+# Switch cases indentados
+case-indent
+
+# Manter espaçamento ao redor de operadores
+space-redirects=true

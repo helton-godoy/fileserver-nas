@@ -1,0 +1,16 @@
+# ShellCheck configuration
+# https://github.com/koalaman/shellcheck/wiki/Directive
+
+# Desabilita avisos específicos que são muito pedantes
+# SC1090: Can't follow non-constant source
+# SC1091: Not following sourced file
+disable=SC1090,SC1091
+
+# Habilita verificações extras
+enable=require-variable-braces
+
+# Define o shell como bash
+shell=bash
+
+# External sources (para scripts que usam source)
+external-sources=true
