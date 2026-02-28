@@ -60,6 +60,7 @@ If the feature is trivial and doesn't warrant full specification, update this wo
 Save to `{@artifacts_path}/plan.md`.
 
 ### [ ] Step: Implementation
+<!-- chat-id: c3cb9469-51b5-49de-9f13-39af726c7288 -->
 
 This step should be replaced with detailed implementation tasks from the Planning step.
 
